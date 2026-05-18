@@ -1,0 +1,53 @@
+{
+  "trained_at": "2026-05-18T00:39:43.986974",
+  "dataset_size": 2000,
+  "feature_columns": [
+    "revenue",
+    "numDepartments",
+    "fiscalQuarter",
+    "yoyGrowth",
+    "operatingMargin",
+    "headcount",
+    "prevUtilization",
+    "industry"
+  ],
+  "numeric_features": [
+    "revenue",
+    "numDepartments",
+    "fiscalQuarter",
+    "yoyGrowth",
+    "operatingMargin",
+    "headcount",
+    "prevUtilization"
+  ],
+  "categorical_features": [
+    "industry"
+  ],
+  "dept_classes": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "best_models": {
+    "totalBudget": {
+      "model_name": "Linear",
+      "mae": 14791.42,
+      "rmse": 19672.59,
+      "r2": 0.7471
+    },
+    "remainingBudget": {
+      "model_name": "Random Forest",
+      "mae": 10447.34,
+      "rmse": 14390.89,
+      "r2": 0.7638
+    },
+    "approvedDepartments": {
+      "model_name": "Random Forest",
+      "accuracy": 0.3675
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "trained_at": "2026-05-18T00:37:12.012776",
+  "dataset_size": 2000,
+  "feature_columns": [
+    "revenue",
+    "invoiceAmount",
+    "vendorHistoryMonths",
+    "lineItems",
+    "daysSinceReceived",
+    "previousInvoices",
+    "amountDeviation",
+    "hasPurchaseOrder",
+    "industry",
+    "invoiceCategory"
+  ],
+  "numeric_features": [
+    "revenue",
+    "invoiceAmount",
+    "vendorHistoryMonths",
+    "lineItems",
+    "daysSinceReceived",
+    "previousInvoices",
+    "amountDeviation",
+    "hasPurchaseOrder"
+  ],
+  "categorical_features": [
+    "industry",
+    "invoiceCategory"
+  ],
+  "status_classes": [
+    "approved",
+    "pending",
+    "rejected"
+  ],
+  "dup_classes": [
+    false,
+    true
+  ],
+  "best_models": {
+    "invoiceAmount": {
+      "model_name": "Linear Regression",
+      "mae": 0.0,
+      "rmse": 0.0,
+      "r2": 1.0
+    },
+    "paymentStatus": {
+      "model_name": "XGBoost",
+      "accuracy": 0.755
+    },
+    "duplicateCheck": {
+      "model_name": "Random Forest",
+      "accuracy": 0.8775
+    }
+  }
+}

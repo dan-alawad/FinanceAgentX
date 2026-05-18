@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanceAgentX — Intelligent Financial Automation System</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Decorative background blobs -->
+  <div class="bg-blobs" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
+
+  <!-- ============== SIDEBAR ============== -->
+  <aside class="sidebar sidebar-minimal">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 17l6-6 4 4 7-8"/>
+        <path d="M14 7h6v6"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>FinanceAgentX</h1>
+      <p>Financial Automation</p>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="org">
+      <div class="org-mark">İSÜ</div>
+      <div>
+        <strong>İstinye University</strong>
+        <span>Software Engineering Department</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+  <!-- ============== MAIN ============== -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div>
+        <p class="eyebrow"><em>Intelligent Financial Automation System</em></p>
+        <h1 class="page-title">Dashboard <span class="title-accent">.</span></h1>
+      </div>
+      <div class="topbar-right">
+        <div class="user">
+          <div class="avatar">MD</div>
+          <div class="user-meta">
+            <strong>Dan &amp; Malak</strong>
+            <span>Admin</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============== HERO: RUN ANALYSIS ============== -->
+    <section class="hero-card">
+      <div class="hero-copy">
+        <p class="eyebrow"><em>Orchestrate</em></p>
+        <h2>Run a new multi-agent <span class="serif-em">analysis</span></h2>
+        <p class="hero-sub">
+          Submit a company and choose <em>all agents</em> or pick a subset —
+          Invoice, Budget, Reconciliation, Credit, Cash — and they will process
+          it in parallel through RabbitMQ.
+        </p>
+      </div>
+      <form id="analyzeForm" class="hero-form" autocomplete="off">
+        <div class="input-wrap">
+          <label for="companyName">Company</label>
+          <input
+            id="companyName"
+            name="companyName"
+            type="text"
+            placeholder="e.g. ABC Corporation"
+            required
+          />
+        </div>
+
+        <!-- Basic fields — always visible -->
+        <div class="basic-grid">
+          <div class="input-wrap input-sm">
+            <label for="industry">Industry</label>
+            <select id="industry" name="industry" class="select">
+              <option value="technology" selected>Technology</option>
+              <option value="retail">Retail</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="services">Services</option>
+            </select>
+          </div>
+          <div class="input-wrap input-sm">
+            <label for="revenue">Revenue ($)</label>
+            <input id="revenue" name="revenue" type="number" placeholder="150000" value="150000" />
+          </div>
+          <div class="input-wrap input-sm">
+            <label for="totalExpenses">Expenses ($)</label>
+            <input id="totalExpenses" name="totalExpenses" type="number" placeholder="95000" value="95000" />
+          </div>
+        </div>
+
+        <!-- Run mode + agent picker -->
+        <div class="run-mode-row">
+          <div class="run-mode-head">
+            <span class="run-mode-label">Run mode</span>
+            <div class="chip-group" id="runModeChips" role="tablist" aria-label="Run mode">
+              <button type="button" class="chip active" data-mode="all" role="tab" aria-selected="true">All agents</button>
+              <button type="button" class="chip" data-mode="selected" role="tab" aria-selected="false">Selected agents</button>
+            </div>
+          </div>
+          <div class="agent-picker" id="agentPicker" hidden>
+            <label class="agent-check" data-agent="invoice" style="--accent: var(--c-blue)">
+              <input type="checkbox" name="agent" value="invoice" />
+              <span class="agent-check-dot"></span>
+              <span class="agent-check-label">Invoice</span>
+            </label>
+            <label class="agent-check" data-agent="budget" style="--accent: var(--c-mint)">
+              <input type="checkbox" name="agent" value="budget" />
+              <span class="agent-check-dot"></span>
+              <span class="agent-check-label">Budget</span>
+            </label>
+            <label class="agent-check" data-agent="reconciliation" style="--accent: var(--c-lavender)">
+              <input type="checkbox" name="agent" value="reconciliation" />
+              <span class="agent-check-dot"></span>
+              <span class="agent-check-label">Reconciliation</span>
+            </label>
+            <label class="agent-check" data-agent="credit" style="--accent: var(--c-peach)">
+              <input type="checkbox" name="agent" value="credit" />
+              <span class="agent-check-dot"></span>
+              <span class="agent-check-label">Credit</span>
+            </label>
+            <label class="agent-check" data-agent="cash" style="--accent: var(--c-pink)">
+              <input type="checkbox" name="agent" value="cash" />
+              <span class="agent-check-dot"></span>
+              <span class="agent-check-label">Cash</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Collapsible advanced inputs for all ML agent models -->
+<details class="financial-details">
+  <summary>Advanced Financial Details (Optional Agent Inputs)</summary>
+
+  <p class="advanced-note">Only inputs relevant to the selected agents are shown.</p>
+
+  <!-- Shared fields -->
+  <fieldset class="agent-fieldset">
+    <legend>General</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="headcount">Headcount</label>
+        <input id="headcount" name="headcount" type="number" placeholder="120" value="120" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Cash Agent -->
+  <fieldset class="agent-fieldset" data-agent-group="cash">
+    <legend>Cash Agent</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="accountsReceivable">Receivables ($)</label>
+        <input id="accountsReceivable" name="accountsReceivable" type="number" placeholder="45000" value="45000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="accountsPayable">Payables ($)</label>
+        <input id="accountsPayable" name="accountsPayable" type="number" placeholder="32000" value="32000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="currentAssets">Current Assets ($)</label>
+        <input id="currentAssets" name="currentAssets" type="number" placeholder="280000" value="280000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="currentLiabilities">Current Liabilities ($)</label>
+        <input id="currentLiabilities" name="currentLiabilities" type="number" placeholder="120000" value="120000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="previousCashBalance">Prev. Cash Balance ($)</label>
+        <input id="previousCashBalance" name="previousCashBalance" type="number" placeholder="90000" value="90000" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Invoice Agent -->
+  <fieldset class="agent-fieldset" data-agent-group="invoice">
+    <legend>Invoice Agent</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="invoiceCategory">Category</label>
+        <select id="invoiceCategory" name="invoiceCategory" class="select">
+          <option value="consulting" selected>Consulting</option>
+          <option value="services">Services</option>
+          <option value="supplies">Supplies</option>
+          <option value="equipment">Equipment</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="invoiceAmount">Invoice Amount ($)</label>
+        <input id="invoiceAmount" name="invoiceAmount" type="number" placeholder="18500" value="18500" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="vendorHistoryMonths">Vendor History (mo)</label>
+        <input id="vendorHistoryMonths" name="vendorHistoryMonths" type="number" placeholder="36" value="36" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="lineItems">Line Items</label>
+        <input id="lineItems" name="lineItems" type="number" placeholder="8" value="8" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="daysSinceReceived">Days Since Received</label>
+        <input id="daysSinceReceived" name="daysSinceReceived" type="number" placeholder="5" value="5" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="previousInvoices">Prev. Invoices</label>
+        <input id="previousInvoices" name="previousInvoices" type="number" placeholder="24" value="24" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="amountDeviation">Amount Deviation (%)</label>
+        <input id="amountDeviation" name="amountDeviation" type="number" step="0.1" placeholder="3.5" value="3.5" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="hasPurchaseOrder">Has Purchase Order</label>
+        <select id="hasPurchaseOrder" name="hasPurchaseOrder" class="select">
+          <option value="1" selected>Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Budget Agent -->
+  <fieldset class="agent-fieldset" data-agent-group="budget">
+    <legend>Budget Agent</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="numDepartments">Departments</label>
+        <input id="numDepartments" name="numDepartments" type="number" placeholder="5" value="5" min="3" max="7" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="fiscalQuarter">Fiscal Quarter</label>
+        <select id="fiscalQuarter" name="fiscalQuarter" class="select">
+          <option value="1">Q1</option>
+          <option value="2" selected>Q2</option>
+          <option value="3">Q3</option>
+          <option value="4">Q4</option>
+        </select>
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="yoyGrowth">YoY Growth (%)</label>
+        <input id="yoyGrowth" name="yoyGrowth" type="number" step="0.1" placeholder="8.5" value="8.5" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="operatingMargin">Operating Margin (%)</label>
+        <input id="operatingMargin" name="operatingMargin" type="number" step="0.1" placeholder="22" value="22" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="prevUtilization">Prev. Utilization (%)</label>
+        <input id="prevUtilization" name="prevUtilization" type="number" step="0.1" placeholder="78.5" value="78.5" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Reconciliation Agent -->
+  <fieldset class="agent-fieldset" data-agent-group="reconciliation">
+    <legend>Reconciliation Agent</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="totalTransactions">Total Transactions</label>
+        <input id="totalTransactions" name="totalTransactions" type="number" placeholder="150" value="150" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="transactionVolume">Volume ($)</label>
+        <input id="transactionVolume" name="transactionVolume" type="number" placeholder="200000" value="200000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="dataQuality">Data Quality (0-100)</label>
+        <input id="dataQuality" name="dataQuality" type="number" step="0.1" placeholder="88.5" value="88.5" min="0" max="100" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="numSources">Data Sources</label>
+        <input id="numSources" name="numSources" type="number" placeholder="4" value="4" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="daysSinceLastRecon">Days Since Last Recon</label>
+        <input id="daysSinceLastRecon" name="daysSinceLastRecon" type="number" placeholder="14" value="14" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="automationLevel">Automation Level (%)</label>
+        <input id="automationLevel" name="automationLevel" type="number" step="0.1" placeholder="75" value="75" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="numAccounts">Accounts</label>
+        <input id="numAccounts" name="numAccounts" type="number" placeholder="12" value="12" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="prevErrorRate">Prev. Error Rate (%)</label>
+        <input id="prevErrorRate" name="prevErrorRate" type="number" step="0.1" placeholder="2.5" value="2.5" />
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- Credit Agent -->
+  <fieldset class="agent-fieldset" data-agent-group="credit">
+    <legend>Credit Agent</legend>
+    <div class="financial-grid">
+      <div class="input-wrap input-sm">
+        <label for="debtToEquity">Debt-to-Equity</label>
+        <input id="debtToEquity" name="debtToEquity" type="number" step="0.01" placeholder="0.8" value="0.8" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="yearsInBusiness">Years in Business</label>
+        <input id="yearsInBusiness" name="yearsInBusiness" type="number" placeholder="15" value="15" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="paymentHistory">Payment History (0-100)</label>
+        <input id="paymentHistory" name="paymentHistory" type="number" step="0.1" placeholder="92" value="92" min="0" max="100" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="outstandingDebt">Outstanding Debt ($)</label>
+        <input id="outstandingDebt" name="outstandingDebt" type="number" placeholder="75000" value="75000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="creditUtilization">Credit Utilization (%)</label>
+        <input id="creditUtilization" name="creditUtilization" type="number" step="0.1" placeholder="35" value="35" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="latePayments">Late Payments (12mo)</label>
+        <input id="latePayments" name="latePayments" type="number" placeholder="1" value="1" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="collateralValue">Collateral Value ($)</label>
+        <input id="collateralValue" name="collateralValue" type="number" placeholder="300000" value="300000" />
+      </div>
+      <div class="input-wrap input-sm">
+        <label for="annualGrowth">Annual Growth (%)</label>
+        <input id="annualGrowth" name="annualGrowth" type="number" step="0.1" placeholder="12" value="12" />
+      </div>
+    </div>
+  </fieldset>
+</details>
+
+        <button type="submit" id="runBtn" class="btn-primary">
+          <span class="btn-label">Run Agents</span>
+          <span class="btn-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"/>
+              <path d="m13 6 6 6-6 6"/>
+            </svg>
+          </span>
+        </button>
+      </form>
+      <div class="hero-decor" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <!-- ============== AGENT STATUS CARDS ============== -->
+    <section class="agent-grid" aria-label="Agent status">
+      <!-- Invoice -->
+      <article class="agent-card" data-agent="invoice" style="--accent: var(--c-blue)">
+        <header>
+          <div class="agent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/>
+              <path d="M8 13h8M8 17h5"/>
+            </svg>
+          </div>
+          <div class="agent-status status-active">
+            <span class="dot"></span> Active
+          </div>
+        </header>
+        <h3>Invoice Agent</h3>
+        <p class="agent-metric"><span data-stat="invoice-amount">$12,500</span></p>
+        <p class="agent-sub">Last invoice <strong data-stat="invoice-id">INV-2026-001</strong></p>
+        <div class="progress">
+          <div class="progress-fill" data-stat="invoice-progress" style="width: 85%"></div>
+        </div>
+        <p class="agent-foot"><span data-stat="invoice-note">No duplicates detected</span></p>
+      </article>
+
+      <!-- Budget -->
+      <article class="agent-card" data-agent="budget" style="--accent: var(--c-mint)">
+        <header>
+          <div class="agent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9v9z"/>
+              <path d="M21 12A9 9 0 0 0 12 3v9z"/>
+            </svg>
+          </div>
+          <div class="agent-status status-idle">
+            <span class="dot"></span> Ready
+          </div>
+        </header>
+        <h3>Budget Agent</h3>
+        <p class="agent-metric"><span data-stat="budget-total">$50,000</span></p>
+        <p class="agent-sub">Remaining <strong data-stat="budget-remaining">$12,000</strong></p>
+        <div class="progress">
+          <div class="progress-fill" data-stat="budget-progress" style="width: 76%"></div>
+        </div>
+        <p class="agent-foot"><span data-stat="budget-depts">3 departments approved</span></p>
+      </article>
+
+      <!-- Reconciliation -->
+      <article class="agent-card" data-agent="reconciliation" style="--accent: var(--c-lavender)">
+        <header>
+          <div class="agent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M3 12h12"/>
+              <path d="M3 18h6"/>
+              <path d="m17 14 4 4-4 4"/>
+            </svg>
+          </div>
+          <div class="agent-status status-processing">
+            <span class="dot"></span> Processing
+          </div>
+        </header>
+        <h3>Reconciliation</h3>
+        <p class="agent-metric"><span data-stat="recon-matched">128</span> <small>/ <span data-stat="recon-total">132</span></small></p>
+        <p class="agent-sub">Unmatched <strong data-stat="recon-unmatched">4</strong> transactions</p>
+        <div class="progress">
+          <div class="progress-fill" data-stat="recon-progress" style="width: 97%"></div>
+        </div>
+        <p class="agent-foot"><span data-stat="recon-status">Matching successful</span></p>
+      </article>
+
+      <!-- Credit -->
+      <article class="agent-card" data-agent="credit" style="--accent: var(--c-peach)">
+        <header>
+          <div class="agent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <path d="M2 10h20"/>
+              <path d="M6 15h4"/>
+            </svg>
+          </div>
+          <div class="agent-status status-warning">
+            <span class="dot"></span> Watch
+          </div>
+        </header>
+        <h3>Credit Agent</h3>
+        <p class="agent-metric"><span data-stat="credit-score">785</span></p>
+        <p class="agent-sub">Risk <strong data-stat="credit-risk">low</strong> · <span data-stat="credit-eligibility">Approved</span></p>
+        <div class="progress">
+          <div class="progress-fill" data-stat="credit-progress" style="width: 87%"></div>
+        </div>
+        <p class="agent-foot"><span data-stat="credit-note">3 accounts need review</span></p>
+      </article>
+
+      <!-- Cash -->
+      <article class="agent-card" data-agent="cash" style="--accent: var(--c-pink)">
+        <header>
+          <div class="agent-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l8-4v18"/>
+              <path d="M19 21V11l-6-4"/>
+            </svg>
+          </div>
+          <div class="agent-status status-active">
+            <span class="dot"></span> Stable
+          </div>
+        </header>
+        <h3>Cash Agent</h3>
+        <p class="agent-metric"><span data-stat="cash-available">$85,000</span></p>
+        <p class="agent-sub">Monthly outflow <strong data-stat="cash-monthly">$23,000</strong></p>
+        <div class="progress">
+          <div class="progress-fill" data-stat="cash-progress" style="width: 73%"></div>
+        </div>
+        <p class="agent-foot"><span data-stat="cash-status">Cash flow stable</span></p>
+      </article>
+    </section>
+
+    <!-- ============== CHARTS ROW ============== -->
+    <section class="overview-grid">
+      <div class="chart-card span-2">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>System overview</em></p>
+            <h3>Tasks completed <span class="serif-em">vs</span> pending</h3>
+          </div>
+          <div class="legend">
+            <span><i style="background: var(--c-lavender)"></i>Completed</span>
+            <span><i style="background: var(--c-peach)"></i>Pending</span>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="tasksChart"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>Distribution</em></p>
+            <h3>Tasks by agent</h3>
+          </div>
+        </div>
+        <div class="chart-wrap donut-wrap">
+          <canvas id="distributionChart"></canvas>
+          <div class="donut-center">
+            <span class="donut-num" id="donutTotal">1,256</span>
+            <span class="donut-lbl">total tasks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card span-2">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>Trend</em></p>
+            <h3>Cash flow <span class="serif-em">— last 7 days</span></h3>
+          </div>
+          <div class="legend">
+            <span><i style="background: var(--c-mint)"></i>Inflow</span>
+            <span><i style="background: var(--c-pink)"></i>Outflow</span>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <div class="quick-card">
+        <p class="eyebrow"><em>At a glance</em></p>
+        <h3>Quick stats</h3>
+        <ul class="quick-stats">
+          <li>
+            <span class="qs-label">Total Analyses</span>
+            <span class="qs-value" id="qsTotal">0</span>
+          </li>
+
+          <li>
+            <span class="qs-label">Completion rate</span>
+            <span class="qs-value" id="qsRate">94%</span>
+          </li>
+          <li>
+            <span class="qs-label">Avg. response</span>
+            <span class="qs-value" id="qsAvg">2.8s</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============== BOTTOM ROW ============== -->
+    <section class="bottom-grid">
+      <!-- Recent Tasks -->
+      <div class="panel tasks-panel">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>Activity</em></p>
+            <h3>Recent tasks</h3>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Task ID</th>
+                <th>Company</th>
+                <th>Agent</th>
+                <th>Status</th>
+                <th>Started</th>
+              </tr>
+            </thead>
+            <tbody id="tasksTableBody">
+              <!-- rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Task Progress -->
+      <div class="panel progress-panel">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>Live</em></p>
+            <h3>Task progress</h3>
+          </div>
+        </div>
+        <div class="progress-list" id="progressList">
+          <!-- rows injected by JS -->
+        </div>
+      </div>
+
+      <!-- Live Logs -->
+      <div class="panel logs-panel">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow"><em>Stream</em></p>
+            <h3>Live logs <span class="live-pulse"><span></span>live</span></h3>
+          </div>
+          <select id="logFilter" class="select">
+            <option value="all">All</option>
+            <option value="info">Info</option>
+            <option value="success">Success</option>
+            <option value="warn">Warnings</option>
+            <option value="error">Errors</option>
+          </select>
+        </div>
+        <ul class="log-list" id="logList">
+          <!-- rows injected by JS -->
+        </ul>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>FinanceAgentX · Capstone 2026</span>
+      <span>Dan Alawad &amp; Malak Mohammad · Supervised by Dr. Hüsamettin Osmanoğlu</span>
+    </footer>
+  </main>
+
+  <!-- Toast container -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Task Details Modal -->
+  <div id="taskModal" class="task-modal" hidden>
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Task Details</h2>
+        <button type="button" class="modal-close" id="closeTaskModal" aria-label="Close modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-row">
+          <span class="modal-label">Task ID</span>
+          <span class="modal-value" id="modal-task-id">—</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Company</span>
+          <span class="modal-value" id="modal-company">—</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Agents</span>
+          <span class="modal-value" id="modal-agents">—</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Status</span>
+          <span class="modal-value" id="modal-status">—</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Started</span>
+          <span class="modal-value" id="modal-started">—</span>
+        </div>
+
+        <div class="modal-section">
+          <h4>Submitted Inputs</h4>
+          <div id="modal-inputs" class="modal-inputs-list">—</div>
+        </div>
+
+        <div class="modal-section">
+          <h4>Agent Results</h4>
+          <div id="modal-results" class="modal-results-list">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts.js" defer></script>
+</body>
+</html>

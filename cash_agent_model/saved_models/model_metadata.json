@@ -1,0 +1,76 @@
+{
+  "trained_at": "2026-05-17T23:39:00.652553",
+  "dataset_size": 2000,
+  "feature_columns": [
+    "revenue",
+    "totalExpenses",
+    "accountsReceivable",
+    "accountsPayable",
+    "currentAssets",
+    "currentLiabilities",
+    "previousCashBalance",
+    "industry",
+    "currentRatio",
+    "netWorkingCapital",
+    "receivablesToRevenueRatio",
+    "expenseToRevenueRatio"
+  ],
+  "numeric_features": [
+    "revenue",
+    "totalExpenses",
+    "accountsReceivable",
+    "accountsPayable",
+    "currentAssets",
+    "currentLiabilities",
+    "previousCashBalance"
+  ],
+  "categorical_features": [
+    "industry"
+  ],
+  "derived_features": [
+    "currentRatio",
+    "netWorkingCapital",
+    "receivablesToRevenueRatio",
+    "expenseToRevenueRatio"
+  ],
+  "status_classes": [
+    "critical",
+    "stable",
+    "tight"
+  ],
+  "best_models": {
+    "availableCash": {
+      "model_name": "Linear Regression",
+      "mae": 4271.24,
+      "rmse": 7211.96,
+      "r2": 0.9953
+    },
+    "monthlyExpenses": {
+      "model_name": "Linear Regression",
+      "mae": 2334.39,
+      "rmse": 3796.71,
+      "r2": 0.9955
+    },
+    "cashFlowStatus": {
+      "model_name": "Random Forest",
+      "accuracy": 0.8775,
+      "confusion_matrix": [
+        [
+          1,
+          14,
+          14
+        ],
+        [
+          0,
+          242,
+          6
+        ],
+        [
+          0,
+          15,
+          108
+        ]
+      ]
+    }
+  }
+}

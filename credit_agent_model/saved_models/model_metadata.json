@@ -1,0 +1,42 @@
+{
+  "trained_at": "2026-05-18T00:40:12.027989",
+  "dataset_size": 2000,
+  "feature_columns": [
+    "revenue",
+    "debtToEquity",
+    "yearsInBusiness",
+    "paymentHistory",
+    "outstandingDebt",
+    "creditUtilization",
+    "latePayments",
+    "collateralValue",
+    "annualGrowth",
+    "industry"
+  ],
+  "risk_classes": [
+    "high",
+    "low",
+    "moderate"
+  ],
+  "elig_classes": [
+    "approved",
+    "denied",
+    "review"
+  ],
+  "best_models": {
+    "creditScore": {
+      "model_name": "Linear",
+      "mae": 15.07,
+      "rmse": 19.03,
+      "r2": 0.9026
+    },
+    "riskLevel": {
+      "model_name": "XGB",
+      "accuracy": 0.8525
+    },
+    "loanEligibility": {
+      "model_name": "XGB",
+      "accuracy": 0.81
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "trained_at": "2026-05-18T00:39:57.833904",
+  "dataset_size": 2000,
+  "feature_columns": [
+    "totalTransactions",
+    "transactionVolume",
+    "dataQuality",
+    "numSources",
+    "daysSinceLastRecon",
+    "automationLevel",
+    "numAccounts",
+    "prevErrorRate",
+    "industry"
+  ],
+  "status_classes": [
+    "failed",
+    "partial",
+    "successful"
+  ],
+  "best_models": {
+    "matched": {
+      "model_name": "XGB",
+      "mae": 7.31,
+      "rmse": 10.1,
+      "r2": 0.9924
+    },
+    "unmatched": {
+      "model_name": "RF",
+      "mae": 6.7,
+      "rmse": 9.16,
+      "r2": 0.8545
+    },
+    "status": {
+      "model_name": "RF",
+      "accuracy": 0.77
+    }
+  }
+}
