@@ -389,15 +389,43 @@ app.get('/tasks', (req, res) => {
             }
           }
 
-          const tasks = taskRows.map(t => ({
-            taskId: t.task_id,
-            status: t.status,
-            companyName: t.company_name,
-            createdAt: t.created_at,
-            results: resultsByTask[t.task_id] || {}
-          }));
+          const responseTasks = taskRows.map(t => {
+            const inMemory = tasks[t.task_id];
+            const results = resultsByTask[t.task_id] || {};
+            const resultCount = Object.keys(results).length;
 
-          res.json({ success: true, tasks });
+            let selectedAgents = inMemory ? inMemory.selectedAgents : null;
+            let totalAgents = inMemory && inMemory.selectedAgents ? inMemory.selectedAgents.length : null;
+
+            // Determine total agents if not in memory
+            if (!totalAgents) {
+              if (t.status === "completed" || resultCount >= 5) {
+                totalAgents = resultCount > 0 ? resultCount : 5;
+              } else {
+                totalAgents = 5; // fallback
+              }
+            }
+
+            // Fix status if it was stuck processing but actually finished
+            let actualStatus = t.status;
+            if (actualStatus === "processing" && resultCount > 0 && resultCount >= totalAgents) {
+              actualStatus = "completed";
+              // optionally update DB in background
+              db.run(`UPDATE tasks SET status = ? WHERE task_id = ?`, ["completed", t.task_id]);
+            }
+
+            return {
+              taskId: t.task_id,
+              status: actualStatus,
+              companyName: t.company_name,
+              createdAt: t.created_at,
+              results: results,
+              selectedAgents: selectedAgents,
+              totalAgents: totalAgents
+            };
+          });
+
+          res.json({ success: true, tasks: responseTasks });
         }
       );
     }

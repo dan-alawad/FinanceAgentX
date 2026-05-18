@@ -1141,13 +1141,29 @@ async function loadTaskHistory() {
           : (agentCount === 1
               ? (AGENTS[agents[0]] && AGENTS[agents[0]].label)
               : `${agentCount} agents`),
-        selectedAgents: agents,
+        selectedAgents: t.selectedAgents || agents,
         results: t.results || {},
         status: t.status || "completed",
         startedAt: new Date(t.createdAt),
       };
 
       state.tasks.push(taskRecord);
+
+      const isDone = taskRecord.status === "completed";
+      const total = t.totalAgents || 5;
+      const completedCount = Object.keys(taskRecord.results).length;
+      let percent = isDone ? 100 : Math.round((completedCount / total) * 100);
+      if (percent === 0 && !isDone) percent = 5; // tiny visual bar
+
+      if (state.progressRows.length < 8) {
+        state.progressRows.push({
+          id: taskRecord.id,
+          title: `Analyzing ${taskRecord.company}`,
+          agent: taskRecord.agent,
+          percent: percent,
+          done: isDone
+        });
+      }
 
       // Count per-agent totals for the donut chart
       for (const agent of agents) {
@@ -1156,6 +1172,7 @@ async function loadTaskHistory() {
     }
 
     renderTasksTable();
+    renderProgressList();
     updateDonut();
     refreshAllCharts();
     pushLog("info", "History loaded", `${data.tasks.length} past tasks restored`, new Date());
