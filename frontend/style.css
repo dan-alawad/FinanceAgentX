@@ -1577,3 +1577,133 @@ body::before {
   width: 100%;
   margin-bottom: 0;
 }
+
+/* =====================================================
+   RESPONSIVE — Tablet (≤1200px)
+   ===================================================== */
+@media (max-width: 1200px) {
+  body {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 140px;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .main {
+    padding: 20px 24px 32px;
+  }
+  .agent-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .span-2 { grid-column: span 1; }
+  .bottom-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .logs-panel {
+    grid-column: span 2;
+  }
+  .hero-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .hero-form {
+    flex-wrap: wrap;
+  }
+}
+
+/* =====================================================
+   RESPONSIVE — Small Tablet (≤900px)
+   ===================================================== */
+@media (max-width: 900px) {
+  .agent-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .span-2 { grid-column: span 1; }
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .logs-panel {
+    grid-column: span 1;
+  }
+  .page-title {
+    font-size: 28px;
+  }
+  .hero-copy h2 {
+    font-size: 24px;
+  }
+  .input-wrap input {
+    width: 200px;
+  }
+}
+
+/* =====================================================
+   RESPONSIVE — Mobile (≤600px)
+   ===================================================== */
+@media (max-width: 600px) {
+  .main {
+    padding: 16px 14px 24px;
+  }
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .page-title {
+    font-size: 24px;
+  }
+  .hero-card {
+    padding: 20px 18px;
+    border-radius: var(--radius);
+  }
+  .hero-copy h2 {
+    font-size: 20px;
+  }
+  .hero-sub {
+    font-size: 12.5px;
+  }
+  .hero-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .input-wrap input {
+    width: 100%;
+  }
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  .agent-grid {
+    grid-template-columns: 1fr;
+  }
+  .agent-metric {
+    font-size: 22px;
+  }
+  .panel {
+    min-height: 300px;
+    max-height: 380px;
+  }
+  .run-mode-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .agent-picker {
+    flex-wrap: wrap;
+  }
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+  .basic-grid {
+    grid-template-columns: 1fr;
+  }
+}

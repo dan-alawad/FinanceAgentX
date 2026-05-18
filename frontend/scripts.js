@@ -83,7 +83,6 @@ function renderTasksTable() {
 
   tbody.innerHTML = visibleTasks
     .slice()
-    .reverse()
     .map(t => {
       const baseAgent = t.agent === "multi"
         ? { label: "All 5 Agents", color: getCss("--c-lavender") }
@@ -297,6 +296,65 @@ function capitalize(s) {
    ===================================================== */
 const charts = {};
 
+function getLast7DayLabels() {
+  const labels = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
+  }
+  return labels;
+}
+
+function buildBarChartData() {
+  const labels = getLast7DayLabels();
+  const completed = new Array(7).fill(0);
+  const pending = new Array(7).fill(0);
+
+  for (const task of state.tasks) {
+    const taskDate = new Date(task.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const idx = labels.indexOf(taskDate);
+    if (idx === -1) continue;
+    if (task.status === "completed") {
+      completed[idx]++;
+    } else {
+      pending[idx]++;
+    }
+  }
+  return { labels, completed, pending };
+}
+
+function refreshTrendChart() {
+  if (!charts.trend) return;
+  const labels = getLast7DayLabels();
+  const inflow = new Array(7).fill(0);
+  const outflow = new Array(7).fill(0);
+
+  for (const task of state.tasks) {
+    const taskDate = new Date(task.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const idx = labels.indexOf(taskDate);
+    if (idx === -1) continue;
+
+    const cashResult = task.results?.cash?.processedData || task.results?.cash;
+    if (cashResult) {
+      const available = parseMoney(cashResult.availableCash);
+      const expenses = parseMoney(cashResult.monthlyExpenses);
+      if (available > 0) inflow[idx] += Math.round(available / 1000);
+      if (expenses > 0) outflow[idx] += Math.round(expenses / 1000);
+    }
+  }
+
+  charts.trend.data.labels = labels;
+  charts.trend.data.datasets[0].data = inflow;
+  charts.trend.data.datasets[1].data = outflow;
+  charts.trend.update("none");
+}
+
+function refreshAllCharts() {
+  refreshBarChart();
+  refreshTrendChart();
+}
+
 function initCharts() {
   if (!window.Chart) return;
 
@@ -311,15 +369,15 @@ function initCharts() {
   /* ----- Tasks completed vs pending (bar) ----- */
   const tasksCtx = document.getElementById("tasksChart");
   if (tasksCtx) {
-    const labels = ["May 12","May 13","May 14","May 15","May 16","May 17","May 18"];
+    const barData = buildBarChartData();
     charts.tasks = new Chart(tasksCtx, {
       type: "bar",
       data: {
-        labels,
+        labels: barData.labels,
         datasets: [
           {
             label: "Completed",
-            data: [240, 312, 278, 340, 305, 360, 318],
+            data: barData.completed,
             backgroundColor: getCss("--c-lavender"),
             borderRadius: 6,
             borderSkipped: false,
@@ -328,7 +386,7 @@ function initCharts() {
           },
           {
             label: "Pending",
-            data: [80, 60, 110, 70, 95, 50, 88],
+            data: barData.pending,
             backgroundColor: getCss("--c-peach"),
             borderRadius: 6,
             borderSkipped: false,
@@ -401,9 +459,11 @@ function initCharts() {
   /* ----- Line: cash flow trend ----- */
   const trendCtx = document.getElementById("trendChart");
   if (trendCtx) {
-    const labels = ["May 12","May 13","May 14","May 15","May 16","May 17","May 18"];
-    const inflow = [180, 230, 195, 310, 240, 285, 260];
-    const outflow = [120, 145, 170, 155, 195, 175, 165];
+    const labels = getLast7DayLabels();
+    const inflow = new Array(7).fill(0);
+    const outflow = new Array(7).fill(0);
+
+    refreshTrendChart();
 
     const ctx = trendCtx.getContext("2d");
     const gradMint = ctx.createLinearGradient(0, 0, 0, 220);
@@ -445,6 +505,15 @@ function initCharts() {
       options: chartOptions({ legend: false, gridX: false, tickStep: 100 }),
     });
   }
+}
+
+function refreshBarChart() {
+  if (!charts.tasks) return;
+  const barData = buildBarChartData();
+  charts.tasks.data.labels = barData.labels;
+  charts.tasks.data.datasets[0].data = barData.completed;
+  charts.tasks.data.datasets[1].data = barData.pending;
+  charts.tasks.update("none");
 }
 
 function chartOptions({ legend = false, gridX = true, tickStep } = {}) {
@@ -544,6 +613,7 @@ function pollTask(taskId, companyName, taskRecord) {
         taskRecord.status = "completed";
         renderTasksTable();
         completeProgressRow(taskRecord.id);
+        refreshAllCharts();
         const detail = total === 5
           ? `${companyName} — all 5 agents reported`
           : `${companyName} — ${completed} of ${total} agents reported`;
@@ -629,6 +699,7 @@ function simulateAnalysis(companyName, taskRecord) {
         taskRecord.status = "completed";
         renderTasksTable();
         completeProgressRow(taskRecord.id);
+        refreshAllCharts();
         toast(`Analysis complete for ${companyName} (demo)`, "success");
       }
     }, meta.eta + Math.random() * 800);
@@ -973,7 +1044,7 @@ function bindForm() {
       startedAt: new Date(),
     };
 
-    state.tasks.push(taskRecord);
+    state.tasks.unshift(taskRecord);
     renderTasksTable();
     addProgressRow(optimisticId, company, taskRecord.agent);
 
@@ -1048,6 +1119,52 @@ function toast(msg, kind = "info") {
 }
 
 /* =====================================================
+   LOAD TASK HISTORY FROM DATABASE
+   ===================================================== */
+async function loadTaskHistory() {
+  try {
+    const res = await fetch(`${API_BASE}/tasks?limit=20`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.success || !data.tasks || data.tasks.length === 0) return;
+
+    for (const t of data.tasks) {
+      const agents = Object.keys(t.results || {});
+      const agentCount = agents.length;
+
+      const taskRecord = {
+        id: t.taskId,
+        company: t.companyName,
+        agent: agentCount === 5 ? "multi" : (agentCount === 1 ? agents[0] : "multi"),
+        agentLabel: agentCount === 5
+          ? "All 5 Agents"
+          : (agentCount === 1
+              ? (AGENTS[agents[0]] && AGENTS[agents[0]].label)
+              : `${agentCount} agents`),
+        selectedAgents: agents,
+        results: t.results || {},
+        status: t.status || "completed",
+        startedAt: new Date(t.createdAt),
+      };
+
+      state.tasks.push(taskRecord);
+
+      // Count per-agent totals for the donut chart
+      for (const agent of agents) {
+        state.totals.perAgent[agent] = (state.totals.perAgent[agent] || 0) + 1;
+      }
+    }
+
+    renderTasksTable();
+    updateDonut();
+    refreshAllCharts();
+    pushLog("info", "History loaded", `${data.tasks.length} past tasks restored`, new Date());
+  } catch {
+    // Backend offline — silently skip history loading
+  }
+}
+
+/* =====================================================
    BOOT
    ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
@@ -1058,10 +1175,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initCharts();
   bindForm();
 
-  // Friendly handshake — try to ping backend silently
-  fetch(`${API_BASE}/`).then(r => {
-    if (r.ok) pushLog("info", "Backend online",
-      `Connected to ${API_BASE}`, new Date());
+  // Friendly handshake — try to ping backend and load history
+  fetch(`${API_BASE}/health`).then(r => {
+    if (r.ok) {
+      pushLog("info", "Backend online",
+        `Connected to ${API_BASE}`, new Date());
+      loadTaskHistory();
+    }
   }).catch(() => {
     pushLog("warn", "Backend offline",
       `Could not reach ${API_BASE} — demo mode will be used`, new Date());

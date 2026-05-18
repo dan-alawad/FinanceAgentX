@@ -1,9 +1,15 @@
+require('dotenv').config();
+
 const path = require('path');
+const cors = require('cors');
 const tasks = {};
 
 const express = require('express');
 const app = express();
 
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
 
@@ -24,7 +30,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:5000'
+        url: `http://localhost:${PORT}`
       }
     ]
   },
@@ -114,16 +120,74 @@ const AGENT_QUEUES = {
   cash:           'cash_queue',
 };
 const ALL_AGENTS = Object.keys(AGENT_QUEUES);
+const VALID_INDUSTRIES = ['technology', 'retail', 'manufacturing', 'healthcare', 'services'];
+
+// Input validation helper
+function validateAnalysisInput(data) {
+  const errors = [];
+
+  if (!data.companyName || typeof data.companyName !== 'string' || data.companyName.trim().length === 0) {
+    errors.push('companyName is required and must be a non-empty string');
+  }
+
+  if (data.industry !== undefined && !VALID_INDUSTRIES.includes(data.industry)) {
+    errors.push(`industry must be one of: ${VALID_INDUSTRIES.join(', ')}`);
+  }
+
+  // Validate numeric fields: must be numbers and non-negative where applicable
+  const nonNegativeFields = [
+    'revenue', 'totalExpenses', 'accountsReceivable', 'accountsPayable',
+    'currentAssets', 'currentLiabilities', 'previousCashBalance',
+    'invoiceAmount', 'vendorHistoryMonths', 'lineItems', 'daysSinceReceived',
+    'previousInvoices', 'headcount', 'numDepartments', 'totalTransactions',
+    'transactionVolume', 'numSources', 'daysSinceLastRecon', 'numAccounts',
+    'outstandingDebt', 'collateralValue', 'yearsInBusiness', 'latePayments'
+  ];
+
+  for (const field of nonNegativeFields) {
+    if (data[field] !== undefined) {
+      if (typeof data[field] !== 'number' || isNaN(data[field])) {
+        errors.push(`${field} must be a valid number`);
+      } else if (data[field] < 0) {
+        errors.push(`${field} must be non-negative`);
+      }
+    }
+  }
+
+  // Validate percentage fields (0-100)
+  const percentFields = ['dataQuality', 'automationLevel', 'creditUtilization', 'paymentHistory'];
+  for (const field of percentFields) {
+    if (data[field] !== undefined) {
+      if (typeof data[field] !== 'number' || isNaN(data[field])) {
+        errors.push(`${field} must be a valid number`);
+      } else if (data[field] < 0 || data[field] > 100) {
+        errors.push(`${field} must be between 0 and 100`);
+      }
+    }
+  }
+
+  // Validate debtToEquity (can be any non-negative number)
+  if (data.debtToEquity !== undefined) {
+    if (typeof data.debtToEquity !== 'number' || isNaN(data.debtToEquity) || data.debtToEquity < 0) {
+      errors.push('debtToEquity must be a non-negative number');
+    }
+  }
+
+  return errors;
+}
 
 // POST ANALYZE
 app.post('/analyze', async (req, res) => {
 
   const data = req.body;
 
-    if (!data.companyName) {
+  // Input validation
+  const validationErrors = validateAnalysisInput(data);
+  if (validationErrors.length > 0) {
     return res.status(400).json({
       success: false,
-      error: "Company name is required"
+      error: validationErrors.length === 1 ? validationErrors[0] : 'Validation failed',
+      errors: validationErrors
     });
   }
 
@@ -257,6 +321,89 @@ app.get('/status/:id', (req, res) => {
 
 });
 
+/**
+ * @swagger
+ * /tasks:
+ *   get:
+ *     summary: Get recent task history
+ *     description: Returns the most recent financial analysis tasks from the database, including their agent results.
+ *     tags:
+ *       - Financial Analysis
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           minimum: 1
+ *           maximum: 100
+ *         description: Maximum number of tasks to return
+ *     responses:
+ *       200:
+ *         description: Task history retrieved successfully
+ */
+
+// GET TASK HISTORY
+app.get('/tasks', (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+
+  db.all(
+    `SELECT task_id, status, company_name, created_at
+     FROM tasks
+     ORDER BY created_at DESC
+     LIMIT ?`,
+    [limit],
+    (err, taskRows) => {
+      if (err) {
+        console.error('Database query error:', err.message);
+        return res.status(500).json({ success: false, error: 'Database error' });
+      }
+
+      if (!taskRows || taskRows.length === 0) {
+        return res.json({ success: true, tasks: [] });
+      }
+
+      const taskIds = taskRows.map(t => t.task_id);
+      const placeholders = taskIds.map(() => '?').join(',');
+
+      db.all(
+        `SELECT task_id, agent, status, result_data, created_at
+         FROM agent_results
+         WHERE task_id IN (${placeholders})
+         ORDER BY created_at ASC`,
+        taskIds,
+        (err2, resultRows) => {
+          if (err2) {
+            console.error('Database query error:', err2.message);
+            return res.status(500).json({ success: false, error: 'Database error' });
+          }
+
+          // Group results by task_id
+          const resultsByTask = {};
+          for (const row of (resultRows || [])) {
+            if (!resultsByTask[row.task_id]) resultsByTask[row.task_id] = {};
+            try {
+              resultsByTask[row.task_id][row.agent] = JSON.parse(row.result_data);
+            } catch {
+              resultsByTask[row.task_id][row.agent] = { status: row.status };
+            }
+          }
+
+          const tasks = taskRows.map(t => ({
+            taskId: t.task_id,
+            status: t.status,
+            companyName: t.company_name,
+            createdAt: t.created_at,
+            results: resultsByTask[t.task_id] || {}
+          }));
+
+          res.json({ success: true, tasks });
+        }
+      );
+    }
+  );
+});
+
 // CONNECT RABBITMQ
 connectRabbitMQ()
   .then(async (channel) => {
@@ -319,6 +466,13 @@ connectRabbitMQ()
 
         if (resultCount === targetCount) {
           tasks[result.taskId].status = "completed";
+          db.run(
+            `UPDATE tasks SET status = ? WHERE task_id = ?`,
+            ["completed", result.taskId],
+            (updateErr) => {
+              if (updateErr) console.error("Task status update error:", updateErr.message);
+            }
+          );
         }
 
       }
@@ -333,6 +487,6 @@ connectRabbitMQ()
   });
 
 // START SERVER
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
