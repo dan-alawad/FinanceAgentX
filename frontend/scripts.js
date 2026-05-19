@@ -309,7 +309,6 @@ function getLast7DayLabels() {
 function buildBarChartData() {
   const labels = getLast7DayLabels();
   const completed = new Array(7).fill(0);
-  const pending = new Array(7).fill(0);
 
   for (const task of state.tasks) {
     const taskDate = new Date(task.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -317,11 +316,9 @@ function buildBarChartData() {
     if (idx === -1) continue;
     if (task.status === "completed") {
       completed[idx]++;
-    } else {
-      pending[idx]++;
     }
   }
-  return { labels, completed, pending };
+  return { labels, completed };
 }
 
 function refreshTrendChart() {
@@ -366,7 +363,7 @@ function initCharts() {
   Chart.defaults.plugins.tooltip.cornerRadius = 8;
   Chart.defaults.plugins.tooltip.titleFont = { family: '"Fraunces", serif', size: 12, weight: 500 };
 
-  /* ----- Tasks completed vs pending (bar) ----- */
+  /* ----- Tasks completed (bar) ----- */
   const tasksCtx = document.getElementById("tasksChart");
   if (tasksCtx) {
     const barData = buildBarChartData();
@@ -383,16 +380,7 @@ function initCharts() {
             borderSkipped: false,
             barPercentage: 0.55,
             categoryPercentage: 0.7,
-          },
-          {
-            label: "Pending",
-            data: barData.pending,
-            backgroundColor: getCss("--c-peach"),
-            borderRadius: 6,
-            borderSkipped: false,
-            barPercentage: 0.55,
-            categoryPercentage: 0.7,
-          },
+          }
         ],
       },
       options: chartOptions({ legend: false, gridX: false }),
@@ -512,7 +500,6 @@ function refreshBarChart() {
   const barData = buildBarChartData();
   charts.tasks.data.labels = barData.labels;
   charts.tasks.data.datasets[0].data = barData.completed;
-  charts.tasks.data.datasets[1].data = barData.pending;
   charts.tasks.update("none");
 }
 
@@ -1142,6 +1129,7 @@ async function loadTaskHistory() {
               ? (AGENTS[agents[0]] && AGENTS[agents[0]].label)
               : `${agentCount} agents`),
         selectedAgents: t.selectedAgents || agents,
+        submittedInputs: t.submittedInputs || {},
         results: t.results || {},
         status: t.status || "completed",
         startedAt: new Date(t.createdAt),

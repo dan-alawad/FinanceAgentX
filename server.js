@@ -224,14 +224,15 @@ app.post('/analyze', async (req, res) => {
 
   db.run(
   `
-    INSERT INTO tasks (task_id, status, company_name, created_at)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO tasks (task_id, status, company_name, created_at, submitted_inputs)
+    VALUES (?, ?, ?, ?, ?)
   `,
   [
     taskId,
     "processing",
     data.companyName,
-    new Date().toISOString()
+    new Date().toISOString(),
+    JSON.stringify(data)
   ],
   (err) => {
 
@@ -348,7 +349,7 @@ app.get('/tasks', (req, res) => {
   const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
 
   db.all(
-    `SELECT task_id, status, company_name, created_at
+    `SELECT task_id, status, company_name, created_at, submitted_inputs
      FROM tasks
      ORDER BY created_at DESC
      LIMIT ?`,
@@ -419,6 +420,7 @@ app.get('/tasks', (req, res) => {
               status: actualStatus,
               companyName: t.company_name,
               createdAt: t.created_at,
+              submittedInputs: t.submitted_inputs ? JSON.parse(t.submitted_inputs) : {},
               results: results,
               selectedAgents: selectedAgents,
               totalAgents: totalAgents
